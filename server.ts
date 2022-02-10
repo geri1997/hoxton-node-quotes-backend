@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import fs from "fs";
+let stringify = require("json-stringify-safe");
 
 const app = express();
 const PORT = 3009;
@@ -28,11 +29,15 @@ app.use(
   })
 );
 app.get("/quotes", (req, res) => {
-  // fs.writeFile("logi.txt", JSON.stringify(req, undefined, 2), (err) => {
-  //   if (err) throw err;
-  //   console.log("The file has been saved!");
-  // });
+  const reqString = stringify(req);
+  fs.writeFile("log.txt", reqString, (err) => {
+    if (err) throw err;
+    console.log("The file has been saved!");
+  });
   res.send(quotes);
+});
+app.get("*", (req, res) => {
+  res.status(404).send({ error: "not found" });
 });
 
 // fs.writeFile()
