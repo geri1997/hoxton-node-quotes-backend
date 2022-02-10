@@ -17,7 +17,9 @@ const quotes = [
   { id: 4, text: "-", author: "Everyone when Nico asks a question" },
 ];
 
-app.listen(PORT);
+app.listen(PORT,()=>{
+ return console.log(`Server.ts started on port ${PORT}`)
+});
 app.use(
   cors({
     origin: "*",
@@ -36,6 +38,14 @@ app.get("/quotes", (req, res) => {
   });
   res.send(quotes);
 });
+
+app.get("/random", (req, res) => {
+  
+  
+  res.send(quotes[Math.floor(Math.random()*quotes.length)]);
+});
+
+
 app.get("*", (req, res) => {
   res.status(404).send({ error: "not found" });
 });
