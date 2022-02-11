@@ -1,7 +1,5 @@
 import express from "express";
 import cors from "cors";
-import fs from "fs";
-let stringify = require("json-stringify-safe");
 
 const app = express();
 const PORT = 3009;
@@ -17,8 +15,8 @@ const quotes = [
   { id: 4, text: "-", author: "Everyone when Nico asks a question" },
 ];
 
-app.listen(PORT,()=>{
- return console.log(`Server.ts started on port ${PORT}`)
+app.listen(PORT, () => {
+  return console.log(`Server.ts started on port ${PORT}`);
 });
 app.use(
   cors({
@@ -31,20 +29,35 @@ app.use(
   })
 );
 app.get("/quotes", (req, res) => {
-  const reqString = stringify(req);
-  fs.writeFile("log.txt", reqString, (err) => {
-    if (err) throw err;
-    console.log("The file has been saved!");
-  });
-  res.send(quotes);
+  console.log(req.query);
+  if (Object.keys(req.query).length !== 0) {
+    if (req.query.authorQ !== undefined && req.query.textQ !== undefined) {
+      res.send(
+        quotes.filter(
+          (quote) =>
+            quote.author.toLowerCase().includes(req.query.authorQ as string) &&
+            quote.text.toLowerCase().includes(req.query.textQ as string)
+        )
+      );
+    } else if (req.query.authorQ !== undefined) {
+      res.send(
+        quotes.filter((quote) =>
+          quote.author.toLowerCase().includes(req.query.authorQ as string)
+        )
+      );
+    } else if (req.query.textQ !== undefined) {
+      res.send(
+        quotes.filter((quote) => quote.text.toLowerCase().includes(req.query.textQ as string))
+      );
+    }
+  } else {
+    res.send(quotes);
+  }
 });
 
 app.get("/random", (req, res) => {
-  
-  
-  res.send(quotes[Math.floor(Math.random()*quotes.length)]);
+  res.send(quotes[Math.floor(Math.random() * quotes.length)]);
 });
-
 
 app.get("*", (req, res) => {
   res.status(404).send({ error: "not found" });
