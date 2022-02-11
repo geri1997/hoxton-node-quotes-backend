@@ -29,7 +29,7 @@ app.use(
   })
 );
 app.get("/quotes", (req, res) => {
-  console.log(req.query);
+  console.log(req.method +'  '+ res.statusCode + '  ' + req.originalUrl)
   if (Object.keys(req.query).length !== 0) {
     if (req.query.authorQ !== undefined && req.query.textQ !== undefined) {
       res.send(
@@ -56,11 +56,14 @@ app.get("/quotes", (req, res) => {
 });
 
 app.get("/random", (req, res) => {
+  console.log(req.method +'  '+ res.statusCode + '  ' + req.path)
   res.send(quotes[Math.floor(Math.random() * quotes.length)]);
 });
 
 app.get("*", (req, res) => {
   res.status(404).send({ error: "not found" });
+  console.log(req.method +'  '+ res.statusCode + '  ' + req.path)
+  
 });
 
 // fs.writeFile()
