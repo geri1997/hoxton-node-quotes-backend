@@ -126,7 +126,7 @@ app.get("/quotes/:id", (req, res) => {
   const quoteToSend = quotes.find((quote) => quote.id === param);
   if (quoteToSend) res.send(quoteToSend);
   else {
-    res.send("<h1>Not found</h1>");
+    res.status(404).send("<h1>Not found</h1>");
   }
 });
 
