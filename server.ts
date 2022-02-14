@@ -76,6 +76,15 @@ app.use(
     methods: ["GET"],
   })
 );
+app.use(express.json())
+
+app.post('/quotes',(req,res)=>{
+  const newQuote=req.body
+  newQuote.id=quotes[quotes.length-1].id +1
+  quotes.push(newQuote)
+  res.status(201).send(newQuote)
+})
+
 app.get("/quotes", (req, res) => {
   // res.json('adasdsda')
   if (Object.keys(req.query).length !== 0) {
