@@ -76,14 +76,23 @@ app.use(
     methods: ["GET"],
   })
 );
-app.use(express.json())
+app.use(express.json());
 
-app.post('/quotes',(req,res)=>{
-  const newQuote=req.body
-  newQuote.id=quotes[quotes.length-1].id +1
-  quotes.push(newQuote)
-  res.status(201).send(newQuote)
-})
+app.post("/quotes", (req, res) => {
+  const newQuote = req.body;
+  newQuote.id = quotes[quotes.length - 1].id + 1;
+  quotes.push(newQuote);
+  res.status(201).send(newQuote);
+});
+
+app.get("/quotes/:id", (req, res) => {
+  const param = +req.params.id;
+  const quoteToSend = quotes.find((quote) => quote.id === param);
+  if (quoteToSend) res.send(quoteToSend);
+  else {
+    res.send("<h1>Not found</h1>");
+  }
+});
 
 app.get("/quotes", (req, res) => {
   // res.json('adasdsda')
@@ -97,7 +106,8 @@ app.get("/quotes", (req, res) => {
         quotes.filter(
           (quote) =>
             (
-              quote.author.firstName.toLowerCase() + quote.author.lastName.toLowerCase()
+              quote.author.firstName.toLowerCase() +
+              quote.author.lastName.toLowerCase()
             ).includes(req.query.authorQ as string) &&
             quote.text.toLowerCase().includes(req.query.textQ as string)
         )
@@ -110,7 +120,8 @@ app.get("/quotes", (req, res) => {
       res.send(
         quotes.filter((quote) =>
           (
-            quote.author.firstName.toLowerCase() + quote.author.lastName.toLowerCase()
+            quote.author.firstName.toLowerCase() +
+            quote.author.lastName.toLowerCase()
           ).includes(req.query.authorQ as string)
         )
       );
