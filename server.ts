@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 
+
 const app = express();
 const PORT = 3009;
 let i = 0;
@@ -62,6 +63,7 @@ const quotes = [
     },
   },
 ];
+
 
 app.listen(PORT, () => {
   return console.log(`Server.ts started on port ${PORT}`);
