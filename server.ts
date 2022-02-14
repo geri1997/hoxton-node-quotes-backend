@@ -10,6 +10,25 @@ let i = 0;
 //   return value.toUpperCase()
 // });
 
+function logRequestInfo(req, res, uOrP) {
+  let today = new Date();
+  let time =
+    today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+
+  console.log(
+    time +
+      "  " +
+      req.method +
+      " (" +
+      i +
+      ") " +
+      res.statusCode +
+      "  " +
+      req[uOrP]
+  );
+  i++;
+}
+
 export interface IQuote {
   id: number;
   text: string;
@@ -102,31 +121,31 @@ app.post("/quotes", (req, res) => {
   newQuote.id = quotes[quotes.length - 1].id + 1;
   newQuote.author.age = +newQuote.author.age;
 
+  const errors: { error: string }[] = [];
+
   if (
     typeof newQuote.author.age === "number" &&
     !Number.isNaN(newQuote.author.age)
   ) {
     quotes.push(newQuote);
     res.status(201).send(newQuote);
-    console.log(
-      req.method + " (" + i + ") " + res.statusCode + "  " + req.path
-    );
-    i++;
+    logRequestInfo(req, res, "path");
   } else {
-    res.status(406).send({ error: "Age should be a number" });
-    console.log(
-      req.method + " (" + i + ") " + res.statusCode + "  " + req.path
-    );
-    i++;
+    errors.push({ error: "Age should be a number" });
+    res.status(400).send(errors);
+    logRequestInfo(req, res, "path");
   }
 });
 
 app.get("/quotes/:id", (req, res) => {
   const param = +req.params.id;
   const quoteToSend = quotes.find((quote) => quote.id === param);
-  if (quoteToSend) res.send(quoteToSend);
-  else {
+  if (quoteToSend) {
+    res.send(quoteToSend);
+    logRequestInfo(req, res, "path");
+  } else {
     res.status(404).send("<h1>Not found</h1>");
+    logRequestInfo(req, res, "path");
   }
 });
 
@@ -134,10 +153,7 @@ app.get("/quotes", (req, res) => {
   // res.json('adasdsda')
   if (Object.keys(req.query).length !== 0) {
     if (req.query.authorQ !== undefined && req.query.textQ !== undefined) {
-      console.log(
-        req.method + " (" + i + ") " + res.statusCode + "  " + req.url
-      );
-      i++;
+      logRequestInfo(req, res, "url");
       res.send(
         quotes.filter(
           (quote) =>
@@ -149,10 +165,7 @@ app.get("/quotes", (req, res) => {
         )
       );
     } else if (req.query.authorQ !== undefined) {
-      console.log(
-        req.method + " (" + i + ") " + res.statusCode + "  " + req.url
-      );
-      i++;
+      logRequestInfo(req, res, "url");
       res.send(
         quotes.filter((quote) =>
           (
@@ -162,10 +175,7 @@ app.get("/quotes", (req, res) => {
         )
       );
     } else if (req.query.textQ !== undefined) {
-      console.log(
-        req.method + " (" + i + ") " + res.statusCode + "  " + req.url
-      );
-      i++;
+      logRequestInfo(req, res, "url");
       res.send(
         quotes.filter((quote) =>
           quote.text.toLowerCase().includes(req.query.textQ as string)
@@ -173,24 +183,20 @@ app.get("/quotes", (req, res) => {
       );
     }
   } else {
-    console.log(
-      req.method + " (" + i + ") " + res.statusCode + "  " + req.path
-    );
-    i++;
+    logRequestInfo(req, res, "url");
+
     res.send(quotes);
   }
 });
 
 app.get("/random", (req, res) => {
-  console.log(req.method + " (" + i + ") " + res.statusCode + "  " + req.path);
-  i++;
+  logRequestInfo(req, res, "path");
   res.send(quotes[Math.floor(Math.random() * quotes.length)]);
 });
 
 app.get("*", (req, res) => {
   res.status(404).send({ error: "not found" });
-  console.log(req.method + " (" + i + ") " + res.statusCode + "  " + req.path);
-  i++;
+  logRequestInfo(req, res, "path");
 });
 
 // fs.writeFile()
