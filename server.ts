@@ -161,17 +161,24 @@ app.post("/quotes", (req, res) => {
   const errors: { error: string }[] = [];
   const newQuote: any = { text: req.body.text };
   const author = req.body.author;
+  
   newQuote.id = db.quotes[db.quotes.length - 1].id + 1;
   console.log(newQuote.id);
   const authorMatch = db.author.find(
     (autho) =>
-      autho.firstName.toLowerCase().trim() === author.firstName.toLowerCase().trim() &&
-      autho.lastName.toLowerCase().trim() === author.lastName.toLowerCase().trim()
+      autho.firstName.toLowerCase().trim() ===
+        author.firstName.toLowerCase().trim() &&
+      autho.lastName.toLowerCase().trim() ===
+        author.lastName.toLowerCase().trim()
   );
+
   if (
     typeof Number(req.body.author.age) === "number" &&
-    !Number.isNaN(Number(req.body.author.age))
+    !Number.isNaN(Number(req.body.author.age)) &&
+    typeof req.body.author.age !== "boolean" &&
+    typeof req.body.author.age !== "object"
   ) {
+    author.age= Number(author.age)
     if (authorMatch) {
       newQuote.userId = authorMatch.id;
       db.quotes.push(newQuote);
