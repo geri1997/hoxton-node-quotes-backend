@@ -139,11 +139,45 @@ app.use(
 // );
 app.use(express.json());
 
-// app.patch("/quotes/:id", (req, res) => {
-//   const id = +req.params.id;
-//   const quoteMatch = db.quotes.find((quote) => quote.id === id);
-//   console.log(req.body);
-// });
+app.patch("/quotes/:id", (req, res) => {
+  const id = +req.params.id;
+  const quoteMatch = db.quotes.find((quote) => quote.id === id);
+  if (req.body.text) {
+    if (quoteMatch) quoteMatch.text = req.body.text;
+    res.send({ message: "Updated successfully" });
+    logRequestInfo(req, res, "url");
+  } else {
+    if (quoteMatch) {
+      const authorMatch = db.author.find(
+        (author) => author.id === quoteMatch.userId
+      );
+      if (authorMatch) {
+        if (req.body.age) {
+          const age = Number(req.body.age);
+          if (
+            typeof Number(req.body.age) === "number" &&
+            !Number.isNaN(Number(req.body.age)) &&
+            typeof req.body.age !== "boolean" &&
+            typeof req.body.age !== "object"
+          ) {
+            authorMatch.age = req.body.age;
+            res.send({ message: "Updated successfully" });
+            logRequestInfo(req, res, "url");
+          } else {
+            res.status(400).send({ message: "Age should be a number" });
+            logRequestInfo(req,res,'url')
+          }
+        } else {
+          for (const property in req.body) {
+            authorMatch[property] = req.body[property];
+            res.send({ message: "Updated successfully" });
+            logRequestInfo(req, res, "url");
+          }
+        }
+      }
+    }
+  }
+});
 
 app.delete("/quotes/:id", (req, res) => {
   const id = +req.params.id;
@@ -161,9 +195,9 @@ app.post("/quotes", (req, res) => {
   const errors: { error: string }[] = [];
   const newQuote: any = { text: req.body.text };
   const author = req.body.author;
-  
+
   newQuote.id = db.quotes[db.quotes.length - 1].id + 1;
-  console.log(newQuote.id);
+
   const authorMatch = db.author.find(
     (autho) =>
       autho.firstName.toLowerCase().trim() ===
@@ -178,13 +212,13 @@ app.post("/quotes", (req, res) => {
     typeof req.body.author.age !== "boolean" &&
     typeof req.body.author.age !== "object"
   ) {
-    author.age= Number(author.age)
+    author.age = Number(author.age);
     if (authorMatch) {
       newQuote.userId = authorMatch.id;
       db.quotes.push(newQuote);
       newQuote.author = authorMatch;
       res.status(201).send(newQuote);
-      console.log("match");
+
       logRequestInfo(req, res, "url");
     } else {
       author.id = db.author[db.author.length - 1].id + 1;
@@ -193,7 +227,7 @@ app.post("/quotes", (req, res) => {
       db.quotes.push(newQuote);
       newQuote.author = author;
       res.status(201).send(newQuote);
-      console.log("no match");
+
       logRequestInfo(req, res, "url");
     }
   } else {
