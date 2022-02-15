@@ -116,8 +116,25 @@ app.use(
 // );
 app.use(express.json());
 
+app.patch("/quotes/:id", (req, res) => {
+  const id = +req.params.id;
+  const quoteMatch = quotes.find((quote) => quote.id === id);
+
+  if (quoteMatch) {
+    for (const key in req.body) {
+      if (quoteMatch[key]) {
+        console.log(quoteMatch[key]);
+        quoteMatch[key] = req.body[key];
+      }
+    }
+    res.send(quoteMatch);
+  }else{
+    res.send({message:"Quote with that id cant be found"})
+  }
+});
+
 app.delete("/quotes/:id", (req, res) => {
-  console.log(req.params)
+  console.log(req.params);
   const id = +req.params.id;
   const indexOfQuote = quotes.findIndex((quote) => quote.id === id);
   if (indexOfQuote !== -1) {
@@ -126,7 +143,7 @@ app.delete("/quotes/:id", (req, res) => {
   } else {
     res.status(404).send({ message: "Could not find quote." });
   }
-  logRequestInfo(req,res,'url')
+  logRequestInfo(req, res, "url");
 });
 
 app.post("/quotes", (req, res) => {

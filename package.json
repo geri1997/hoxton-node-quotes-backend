@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node server1",
-    "nodemonStart": "nodemon server.ts",
+    "start": "nodemon server.ts",
+    "nodemonStart": "ts-node server",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
