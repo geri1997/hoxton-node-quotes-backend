@@ -1,4 +1,4 @@
-import express from "express";
+import express, { json } from "express";
 import cors from "cors";
 
 const app = express();
@@ -43,63 +43,77 @@ export interface Author {
   bio: string;
 }
 
-const quotes = [
-  {
-    id: 1,
-    text: "Let me shaare myyyyy screeeeeeeeen",
-    author: {
-      firstName: "Nicolas",
-      lastName: "Marcora",
-      photo: "https://robohash.org/NicolasMarcora",
-      age: 34,
-      bio: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quos laboriosam at ut expedita non, itaque nobis magnam, dolores ipsam vitae, totam laudantium iure unde soluta? Quos accusantium officiis qui amet?",
+const db = {
+  quotes: [
+    {
+      id: 1,
+      text: "Let me shaare myyyyy screeeeeeeeen",
+      userId: 1,
     },
-  },
-  {
-    id: 2,
-    text: "I will bite",
-    author: {
-      firstName: "Ed",
-      lastName: "Putans",
-      photo: "https://robohash.org/EdPutans",
-      age: 28,
-      bio: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quos laboriosam at ut expedita non, itaque nobis magnam, dolores ipsam vitae, totam laudantium iure unde soluta? Quos accusantium officiis qui amet?",
+    {
+      id: 2,
+      text: "I will bite",
+      userId: 2,
     },
-  },
-  {
-    id: 3,
-    text: "I have a question",
-    author: {
-      firstName: "Geri",
-      lastName: "Luga",
-      age: 24,
-      photo: "https://robohash.org/GeriLuga",
-      bio: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quos laboriosam at ut expedita non, itaque nobis magnam, dolores ipsam vitae, totam laudantium iure unde soluta? Quos accusantium officiis qui amet?",
+    {
+      id: 3,
+      text: "I have a question",
+      userId: 3,
     },
-  },
-  {
-    id: 4,
-    text: "-",
-    author: {
-      firstName: "Everyone when Nico",
-      lastName: "asks a question",
-      age: 0,
-      photo: "https://robohash.org/Hoxton",
-      bio: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quos laboriosam at ut expedita non, itaque nobis magnam, dolores ipsam vitae, totam laudantium iure unde soluta? Quos accusantium officiis qui amet?",
+    {
+      id: 4,
+      text: "-",
+      userId: 4,
     },
-  },
-  {
-    id: 5,
-    text: "If you do a HEAD request, will the server give you head 🤔",
-    author: {
+    {
+      id: 5,
+      text: "If you do a HEAD request, will the server give you head 🤔",
+      userId: 5,
+    },
+  ],
+  author: [
+    {
       firstName: "Not",
       lastName: "Geri",
       age: 24,
       photo: "https://robohash.org/NotGeri",
       bio: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quos laboriosam at ut expedita non, itaque nobis magnam, dolores ipsam vitae, totam laudantium iure unde soluta? Quos accusantium officiis qui amet?",
+      id: 5,
     },
-  },
-];
+    {
+      firstName: "Everyone when Nico",
+      lastName: "asks a question",
+      age: 0,
+      photo: "https://robohash.org/Hoxton",
+      bio: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quos laboriosam at ut expedita non, itaque nobis magnam, dolores ipsam vitae, totam laudantium iure unde soluta? Quos accusantium officiis qui amet?",
+      id: 4,
+    },
+    {
+      firstName: "Geri",
+      lastName: "Luga",
+      age: 24,
+      photo: "https://robohash.org/GeriLuga",
+      bio: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quos laboriosam at ut expedita non, itaque nobis magnam, dolores ipsam vitae, totam laudantium iure unde soluta? Quos accusantium officiis qui amet?",
+      id: 3,
+    },
+    {
+      firstName: "Ed",
+      lastName: "Putans",
+      photo: "https://robohash.org/EdPutans",
+      age: 28,
+      bio: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quos laboriosam at ut expedita non, itaque nobis magnam, dolores ipsam vitae, totam laudantium iure unde soluta? Quos accusantium officiis qui amet?",
+      id: 2,
+    },
+    {
+      firstName: "Nicolas",
+      lastName: "Marcora",
+      photo: "https://robohash.org/NicolasMarcora",
+      age: 34,
+      bio: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quos laboriosam at ut expedita non, itaque nobis magnam, dolores ipsam vitae, totam laudantium iure unde soluta? Quos accusantium officiis qui amet?",
+      id: 1,
+    },
+  ],
+};
 
 app.listen(PORT, () => {
   return console.log(`Server.ts started on port ${PORT}`);
@@ -118,27 +132,15 @@ app.use(express.json());
 
 app.patch("/quotes/:id", (req, res) => {
   const id = +req.params.id;
-  const quoteMatch = quotes.find((quote) => quote.id === id);
-
-  if (quoteMatch) {
-    for (const key in req.body) {
-      if (quoteMatch[key]) {
-        console.log(quoteMatch[key]);
-        quoteMatch[key] = req.body[key];
-      }
-    }
-    res.send(quoteMatch);
-  }else{
-    res.send({message:"Quote with that id cant be found"})
-  }
+  const quoteMatch = db.quotes.find((quote) => quote.id === id);
+  console.log(req.body);
 });
 
 app.delete("/quotes/:id", (req, res) => {
-  console.log(req.params);
   const id = +req.params.id;
-  const indexOfQuote = quotes.findIndex((quote) => quote.id === id);
+  const indexOfQuote = db.quotes.findIndex((quote) => quote.id === id);
   if (indexOfQuote !== -1) {
-    quotes.splice(indexOfQuote, 1);
+    db.quotes.splice(indexOfQuote, 1);
     res.status(200).send({ message: "Successfully deleted." });
   } else {
     res.status(404).send({ message: "Could not find quote." });
@@ -146,30 +148,37 @@ app.delete("/quotes/:id", (req, res) => {
   logRequestInfo(req, res, "url");
 });
 
-app.post("/quotes", (req, res) => {
-  const newQuote: IQuote = req.body;
-  newQuote.id = quotes[quotes.length - 1].id + 1;
-  newQuote.author.age = +newQuote.author.age;
+// app.post("/quotes", (req, res) => {
+//   const newQuote: IQuote = req.body;
+//   newQuote.id = db.quotes[db.quotes.length - 1].id + 1;
+//   newQuote.author.age = +newQuote.author.age;
 
-  const errors: { error: string }[] = [];
+//   const errors: { error: string }[] = [];
 
-  if (
-    typeof newQuote.author.age === "number" &&
-    !Number.isNaN(newQuote.author.age)
-  ) {
-    quotes.push(newQuote);
-    res.status(201).send(newQuote);
-    logRequestInfo(req, res, "path");
-  } else {
-    errors.push({ error: "Age should be a number" });
-    res.status(400).send(errors);
-    logRequestInfo(req, res, "path");
-  }
-});
+//   if (
+//     typeof newQuote.author.age === "number" &&
+//     !Number.isNaN(newQuote.author.age)
+//   ) {
+//     db.quotes.push(newQuote);
+//     res.status(201).send(newQuote);
+//     logRequestInfo(req, res, "path");
+//   } else {
+//     errors.push({ error: "Age should be a number" });
+//     res.status(400).send(errors);
+//     logRequestInfo(req, res, "path");
+//   }
+// });
 
 app.get("/quotes/:id", (req, res) => {
+  const quotesCopy = JSON.parse(JSON.stringify(db.quotes));
+
+  for (const quote of quotesCopy) {
+    const authorMatch = db.author.find((author) => author.id === quote.userId);
+    quote.author = authorMatch;
+  }
+
   const param = +req.params.id;
-  const quoteToSend = quotes.find((quote) => quote.id === param);
+  const quoteToSend = quotesCopy.find((quote) => quote.id === param);
   if (quoteToSend) {
     res.send(quoteToSend);
     logRequestInfo(req, res, "path");
@@ -180,48 +189,58 @@ app.get("/quotes/:id", (req, res) => {
 });
 
 app.get("/quotes", (req, res) => {
-  // res.json('adasdsda')
-  if (Object.keys(req.query).length !== 0) {
-    if (req.query.authorQ !== undefined && req.query.textQ !== undefined) {
-      logRequestInfo(req, res, "url");
-      res.send(
-        quotes.filter(
-          (quote) =>
-            (
-              quote.author.firstName.toLowerCase() +
-              quote.author.lastName.toLowerCase()
-            ).includes(req.query.authorQ as string) &&
-            quote.text.toLowerCase().includes(req.query.textQ as string)
-        )
-      );
-    } else if (req.query.authorQ !== undefined) {
-      logRequestInfo(req, res, "url");
-      res.send(
-        quotes.filter((quote) =>
+  const quotesCopy = JSON.parse(JSON.stringify(db.quotes));
+
+  for (const quote of quotesCopy) {
+    const authorMatch = db.author.find((author) => author.id === quote.userId);
+    quote.author = authorMatch;
+  }
+
+  if (req.query.authorQ !== undefined && req.query.textQ !== undefined) {
+    logRequestInfo(req, res, "url");
+    res.send(
+      quotesCopy.filter(
+        (quote) =>
           (
             quote.author.firstName.toLowerCase() +
             quote.author.lastName.toLowerCase()
-          ).includes(req.query.authorQ as string)
-        )
-      );
-    } else if (req.query.textQ !== undefined) {
-      logRequestInfo(req, res, "url");
-      res.send(
-        quotes.filter((quote) =>
+          ).includes(req.query.authorQ as string) &&
           quote.text.toLowerCase().includes(req.query.textQ as string)
-        )
-      );
-    }
+      )
+    );
+  } else if (req.query.authorQ !== undefined) {
+    logRequestInfo(req, res, "url");
+    res.send(
+      quotesCopy.filter((quote) =>
+        (
+          quote.author.firstName.toLowerCase() +
+          quote.author.lastName.toLowerCase()
+        ).includes(req.query.authorQ as string)
+      )
+    );
+  } else if (req.query.textQ !== undefined) {
+    logRequestInfo(req, res, "url");
+    res.send(
+      quotesCopy.filter((quote) =>
+        quote.text.toLowerCase().includes(req.query.textQ as string)
+      )
+    );
   } else {
     logRequestInfo(req, res, "url");
 
-    res.send(quotes);
+    res.send(quotesCopy);
   }
 });
 
 app.get("/random", (req, res) => {
+  const quotesCopy = JSON.parse(JSON.stringify(db.quotes));
+
+  for (const quote of quotesCopy) {
+    const authorMatch = db.author.find((author) => author.id === quote.userId);
+    quote.author = authorMatch;
+  }
   logRequestInfo(req, res, "path");
-  res.send(quotes[Math.floor(Math.random() * quotes.length)]);
+  res.send(quotesCopy[Math.floor(Math.random() *quotesCopy.length)]);
 });
 
 app.get("*", (req, res) => {
