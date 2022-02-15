@@ -109,12 +109,24 @@ app.use(
     origin: "*",
   })
 );
-app.use(
-  cors({
-    methods: ["GET"],
-  })
-);
+// app.use(
+//   cors({
+//     methods: ["GET"],
+//   })
+// );
 app.use(express.json());
+
+app.delete("/quotes/:id", (req, res) => {
+  const id = +req.params.id;
+  const indexOfQuote = quotes.findIndex((quote) => quote.id === id);
+  if (indexOfQuote !== -1) {
+    quotes.splice(indexOfQuote, 1);
+    res.status(200).send({ message: "Successfully deleted." });
+  } else {
+    res.status(404).send({ message: "Could not find quote." });
+  }
+  logRequestInfo(req,res,'url')
+});
 
 app.post("/quotes", (req, res) => {
   const newQuote: IQuote = req.body;
