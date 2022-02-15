@@ -117,6 +117,7 @@ app.use(
 app.use(express.json());
 
 app.delete("/quotes/:id", (req, res) => {
+  console.log(req.params)
   const id = +req.params.id;
   const indexOfQuote = quotes.findIndex((quote) => quote.id === id);
   if (indexOfQuote !== -1) {
