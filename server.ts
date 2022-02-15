@@ -10,6 +10,15 @@ let i = 0;
 //   return value.toUpperCase()
 // });
 
+// function doesAuthorExist(firstName:string,lastName:string):Boolean{
+//   for (const author of db.author) {
+//     if(author.firstName.toLowerCase()===firstName&&author.lastName===lastName){
+//       return true
+//     }
+//   }
+//   return false
+// }
+
 function logRequestInfo(req, res, uOrP) {
   let today = new Date();
   let time =
@@ -32,7 +41,7 @@ function logRequestInfo(req, res, uOrP) {
 export interface IQuote {
   id: number;
   text: string;
-  author: Author;
+  userId: number;
 }
 
 export interface Author {
@@ -73,14 +82,6 @@ const db = {
   ],
   author: [
     {
-      firstName: "Not",
-      lastName: "Geri",
-      age: 24,
-      photo: "https://robohash.org/NotGeri",
-      bio: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quos laboriosam at ut expedita non, itaque nobis magnam, dolores ipsam vitae, totam laudantium iure unde soluta? Quos accusantium officiis qui amet?",
-      id: 5,
-    },
-    {
       firstName: "Everyone when Nico",
       lastName: "asks a question",
       age: 0,
@@ -112,6 +113,14 @@ const db = {
       bio: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quos laboriosam at ut expedita non, itaque nobis magnam, dolores ipsam vitae, totam laudantium iure unde soluta? Quos accusantium officiis qui amet?",
       id: 1,
     },
+    {
+      firstName: "Not",
+      lastName: "Geri",
+      age: 24,
+      photo: "https://robohash.org/NotGeri",
+      bio: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quos laboriosam at ut expedita non, itaque nobis magnam, dolores ipsam vitae, totam laudantium iure unde soluta? Quos accusantium officiis qui amet?",
+      id: 5,
+    },
   ],
 };
 
@@ -130,11 +139,11 @@ app.use(
 // );
 app.use(express.json());
 
-app.patch("/quotes/:id", (req, res) => {
-  const id = +req.params.id;
-  const quoteMatch = db.quotes.find((quote) => quote.id === id);
-  console.log(req.body);
-});
+// app.patch("/quotes/:id", (req, res) => {
+//   const id = +req.params.id;
+//   const quoteMatch = db.quotes.find((quote) => quote.id === id);
+//   console.log(req.body);
+// });
 
 app.delete("/quotes/:id", (req, res) => {
   const id = +req.params.id;
@@ -148,26 +157,44 @@ app.delete("/quotes/:id", (req, res) => {
   logRequestInfo(req, res, "url");
 });
 
-// app.post("/quotes", (req, res) => {
-//   const newQuote: IQuote = req.body;
-//   newQuote.id = db.quotes[db.quotes.length - 1].id + 1;
-//   newQuote.author.age = +newQuote.author.age;
-
-//   const errors: { error: string }[] = [];
-
-//   if (
-//     typeof newQuote.author.age === "number" &&
-//     !Number.isNaN(newQuote.author.age)
-//   ) {
-//     db.quotes.push(newQuote);
-//     res.status(201).send(newQuote);
-//     logRequestInfo(req, res, "path");
-//   } else {
-//     errors.push({ error: "Age should be a number" });
-//     res.status(400).send(errors);
-//     logRequestInfo(req, res, "path");
-//   }
-// });
+app.post("/quotes", (req, res) => {
+  const errors: { error: string }[] = [];
+  const newQuote: any = { text: req.body.text };
+  const author = req.body.author;
+  newQuote.id = db.quotes[db.quotes.length - 1].id + 1;
+  console.log(newQuote.id);
+  const authorMatch = db.author.find(
+    (autho) =>
+      autho.firstName.toLowerCase().trim() === author.firstName.toLowerCase().trim() &&
+      autho.lastName.toLowerCase().trim() === author.lastName.toLowerCase().trim()
+  );
+  if (
+    typeof Number(req.body.author.age) === "number" &&
+    !Number.isNaN(Number(req.body.author.age))
+  ) {
+    if (authorMatch) {
+      newQuote.userId = authorMatch.id;
+      db.quotes.push(newQuote);
+      newQuote.author = authorMatch;
+      res.status(201).send(newQuote);
+      console.log("match");
+      logRequestInfo(req, res, "url");
+    } else {
+      author.id = db.author[db.author.length - 1].id + 1;
+      db.author.push(author);
+      newQuote.userId = author.id;
+      db.quotes.push(newQuote);
+      newQuote.author = author;
+      res.status(201).send(newQuote);
+      console.log("no match");
+      logRequestInfo(req, res, "url");
+    }
+  } else {
+    errors.push({ error: "Age should be a number" });
+    res.status(400).send(errors);
+    logRequestInfo(req, res, "path");
+  }
+});
 
 app.get("/quotes/:id", (req, res) => {
   const quotesCopy = JSON.parse(JSON.stringify(db.quotes));
@@ -240,7 +267,7 @@ app.get("/random", (req, res) => {
     quote.author = authorMatch;
   }
   logRequestInfo(req, res, "path");
-  res.send(quotesCopy[Math.floor(Math.random() *quotesCopy.length)]);
+  res.send(quotesCopy[Math.floor(Math.random() * quotesCopy.length)]);
 });
 
 app.get("*", (req, res) => {
