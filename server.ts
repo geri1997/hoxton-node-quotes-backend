@@ -208,18 +208,12 @@ app.post("/quotes", (req, res) => {
    const author: IAuthor = req.body.author;
 
    if (
-      !req.body.text ||
       !author ||
-      !author.firstName ||
-      !author.lastName ||
-      !author.bio ||
-      !author.age ||
-      !author.photo ||
-      typeof req.body.text !== "string" ||
-      typeof author.firstName !== "string" ||
-      typeof author.lastName !== "string" ||
-      typeof author.bio !== "string" ||
-      typeof author.photo !== "string" ||
+      typeof req.body?.text !== "string" ||
+      typeof author?.firstName !== "string" ||
+      typeof author?.lastName !== "string" ||
+      typeof author?.bio !== "string" ||
+      typeof author?.photo !== "string" ||
       !(
          typeof Number(req.body.author.age) === "number" &&
          !Number.isNaN(Number(req.body.author.age)) &&
