@@ -10,31 +10,28 @@ let i = 0;
 //   return value.toUpperCase()
 // });
 
-// function doesAuthorExist(firstName:string,lastName:string):Boolean{
-//   for (const author of db.author) {
-//     if(author.firstName.toLowerCase()===firstName&&author.lastName===lastName){
-//       return true
-//     }
-//   }
-//   return false
-// }
-
 function logRequestInfo(req, res, uOrP: string): void {
    let today = new Date();
-   let time =
-      today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+   let hours =
+      today.getHours() < 10 ? "0" + today.getHours() : today.getHours();
+   let minutes =
+      today.getMinutes() < 10 ? "0" + today.getMinutes() : today.getMinutes();
+   let seconds =
+      today.getSeconds() < 10 ? "0" + today.getSeconds() : today.getSeconds();
+    let time = hours + ':' + minutes + ':' + seconds
 
-   console.log(
-      time +
-         "  " +
-         req.method +
-         " (" +
-         i +
-         ") " +
-         res.statusCode +
-         "  " +
-         req[uOrP]
-   );
+
+    console.log(
+       time +
+          "  " +
+          req.method +
+          " (" +
+          i +
+          ") " +
+          res.statusCode +
+          "  " +
+          req[uOrP]
+    );
    i++;
 }
 
@@ -328,6 +325,7 @@ app.get("/random", (req, res) => {
    const authorOfQuoteToSend = db.author.find(
       (author) => author.id === randomQuote.authorId
    )!;
+   
    const quoteToSend: IQuoteWithAuthor = {
       ...randomQuote,
       author: authorOfQuoteToSend,
