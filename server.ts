@@ -155,38 +155,86 @@ app.use(express.json());
 app.patch("/quotes/:id", (req, res) => {
    const id = +req.params.id;
    const quoteMatch = db.quotes.find((quote) => quote.id === id);
-   if (req.body.text) {
+   //  const author: IAuthor = req.body.author;
+   const errors = [];
+
+   if (!quoteMatch)
+      res.status(404).send({
+         error: `A quote with the id ${req.params.id} doesn't exist.`,
+      });
+
+   if (typeof req.body?.text === "string") {
       if (quoteMatch) quoteMatch.text = req.body.text;
       res.send(quoteMatch);
       logRequestInfo(req, res, "url");
-   } else {
-      if (quoteMatch) {
-         const authorMatch = db.author.find(
-            (author) => author.id === quoteMatch.authorId
-         );
-         if (authorMatch) {
-            if (req.body.age) {
-               if (
-                  typeof Number(req.body.age) === "number" &&
-                  !Number.isNaN(Number(req.body.age)) &&
-                  typeof req.body.age !== "boolean" &&
-                  typeof req.body.age !== "object"
-               ) {
-                  authorMatch.age = req.body.age;
-                  res.send(authorMatch);
-                  logRequestInfo(req, res, "url");
-               } else {
-                  res.status(400).send({ message: "Age should be a number" });
-                  logRequestInfo(req, res, "url");
-               }
-            } else {
-               for (const property in req.body) {
+      return;
+   }
+   res.status(400).send({ error: "The value should be a string." });
+   logRequestInfo(req, res, "url");
+   return;
+   // if (quoteMatch) {
+   //    const authorMatch = db.author.find(
+   //       (author) => author.id === quoteMatch.authorId
+   //    );
+   //    if (authorMatch) {
+   //       if (req.body.age) {
+   //          if (
+   //             typeof Number(req.body.age) === "number" &&
+   //             !Number.isNaN(Number(req.body.age)) &&
+   //             typeof req.body.age !== "boolean" &&
+   //             typeof req.body.age !== "object"
+   //          ) {
+   //             authorMatch.age = req.body.age;
+   //             res.send(authorMatch);
+   //             logRequestInfo(req, res, "url");
+   //          } else {
+   //             res.status(400).send({ message: "Age should be a number" });
+   //             logRequestInfo(req, res, "url");
+   //          }
+   //       } else {
+   //          for (const property in req.body) {
+   //             authorMatch[property] = req.body[property];
+   //             res.send(authorMatch);
+   //             logRequestInfo(req, res, "url");
+   //          }
+   //       }
+   //    }
+   // }
+});
+
+app.patch("/author/:id", (req, res) => {
+   const authorMatch = db.author.find(
+      (auth) => auth.id === Number(req.params.id)
+   );
+
+   if (authorMatch) {
+      if (
+         req.body.age &&
+         (typeof Number(req.body.age) !== "number" ||
+            Number.isNaN(Number(req.body.age)) ||
+            typeof req.body.age === "boolean" ||
+            typeof req.body.age === "object")
+      ) {
+         res.status(400).send({ message: "Age should be a number" });
+         logRequestInfo(req, res, "url");
+         return;
+      } else {
+         for (const property in req.body) {
+            if (authorMatch[property] !== undefined && property !== "id") {
+               if (property === "age") {
+                  authorMatch[property] = Number(req.body[property]);
+               } else if (typeof req.body[property] === "string") {
                   authorMatch[property] = req.body[property];
-                  res.send(authorMatch);
+               } else {
+                  res.send({ error: `${property} should be a string` });
                   logRequestInfo(req, res, "url");
+                  return;
                }
             }
          }
+         res.send(authorMatch);
+         logRequestInfo(req, res, "url");
+         return;
       }
    }
 });
@@ -206,6 +254,8 @@ app.delete("/quotes/:id", (req, res) => {
 app.post("/quotes", (req, res) => {
    const errors: { error: string }[] = [];
    const author: IAuthor = req.body.author;
+   const lastQuoteId = Math.max(...db.quotes.map((quote) => quote.id));
+   const lastAuthorId = Math.max(...db.author.map((author) => author.id));
 
    if (
       !author ||
@@ -214,6 +264,7 @@ app.post("/quotes", (req, res) => {
       typeof author?.lastName !== "string" ||
       typeof author?.bio !== "string" ||
       typeof author?.photo !== "string" ||
+      typeof author?.bio !== "string" ||
       !(
          typeof Number(req.body.author.age) === "number" &&
          !Number.isNaN(Number(req.body.author.age)) &&
@@ -233,7 +284,7 @@ app.post("/quotes", (req, res) => {
 
    const newQuote: IQuote = { text: req.body.text, authorId: 0, id: 0 };
 
-   newQuote.id = db.quotes[db.quotes.length - 1].id + 1;
+   newQuote.id = db.quotes.length ? lastQuoteId + 1 : 1;
 
    const authorMatch = db.author.find(
       (autho) =>
@@ -256,7 +307,7 @@ app.post("/quotes", (req, res) => {
 
       logRequestInfo(req, res, "url");
    } else {
-      author.id = db.author[db.author.length - 1].id + 1;
+      author.id = db.author.length ? lastAuthorId + 1 : 1;
       db.author.push(author);
       newQuote.authorId = author.id;
       db.quotes.push(newQuote);
