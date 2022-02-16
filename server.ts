@@ -18,20 +18,19 @@ function logRequestInfo(req, res, uOrP: string): void {
       today.getMinutes() < 10 ? "0" + today.getMinutes() : today.getMinutes();
    let seconds =
       today.getSeconds() < 10 ? "0" + today.getSeconds() : today.getSeconds();
-    let time = hours + ':' + minutes + ':' + seconds
+   let time = hours + ":" + minutes + ":" + seconds;
 
-
-    console.log(
-       time +
-          "  " +
-          req.method +
-          " (" +
-          i +
-          ") " +
-          res.statusCode +
-          "  " +
-          req[uOrP]
-    );
+   console.log(
+      time +
+         "  " +
+         req.method +
+         " (" +
+         i +
+         ") " +
+         res.statusCode +
+         "  " +
+         req[uOrP]
+   );
    i++;
 }
 
@@ -56,6 +55,15 @@ export interface IQuoteWithAuthor {
    authorId: number;
    author: IAuthor;
 }
+
+const objectToTestKeysAgainst = {
+   text: "string",
+   age: "number",
+   firstName: "string",
+   lastName: "string",
+   photo: "string",
+   bio: "string",
+};
 
 const db: { quotes: IQuote[]; author: IAuthor[] } = {
    quotes: [
@@ -197,8 +205,39 @@ app.delete("/quotes/:id", (req, res) => {
 
 app.post("/quotes", (req, res) => {
    const errors: { error: string }[] = [];
-   const newQuote: IQuote = { text: req.body.text, authorId: 0, id: 0 };
    const author: IAuthor = req.body.author;
+
+   if (
+      !req.body.text ||
+      !author ||
+      !author.firstName ||
+      !author.lastName ||
+      !author.bio ||
+      !author.age ||
+      !author.photo ||
+      typeof req.body.text !== "string" ||
+      typeof author.firstName !== "string" ||
+      typeof author.lastName !== "string" ||
+      typeof author.bio !== "string" ||
+      typeof author.photo !== "string" ||
+      !(
+         typeof Number(req.body.author.age) === "number" &&
+         !Number.isNaN(Number(req.body.author.age)) &&
+         typeof req.body.author.age !== "boolean" &&
+         typeof req.body.author.age !== "object"
+      ) ||
+      Object.keys(req.body).length > 2 ||
+      Object.keys(req.body.author).length > 5
+   ) {
+      errors.push({
+         error: "Missing properties, wrong type or extra properties.",
+      });
+      res.status(400).send(errors);
+      logRequestInfo(req, res, "path");
+      return;
+   }
+
+   const newQuote: IQuote = { text: req.body.text, authorId: 0, id: 0 };
 
    newQuote.id = db.quotes[db.quotes.length - 1].id + 1;
 
@@ -210,42 +249,31 @@ app.post("/quotes", (req, res) => {
             author.lastName.toLowerCase().trim()
    );
 
-   if (
-      typeof Number(req.body.author.age) === "number" &&
-      !Number.isNaN(Number(req.body.author.age)) &&
-      typeof req.body.author.age !== "boolean" &&
-      typeof req.body.author.age !== "object"
-   ) {
-      author.age = Number(author.age);
-      if (authorMatch) {
-         newQuote.authorId = authorMatch.id;
-         db.quotes.push(newQuote);
-         const quoteToSend: IQuoteWithAuthor = {
-            ...newQuote,
-            author: authorMatch,
-         };
+   author.age = Number(author.age);
+   if (authorMatch) {
+      newQuote.authorId = authorMatch.id;
+      db.quotes.push(newQuote);
+      const quoteToSend: IQuoteWithAuthor = {
+         ...newQuote,
+         author: authorMatch,
+      };
 
-         res.status(201).send(quoteToSend);
+      res.status(201).send(quoteToSend);
 
-         logRequestInfo(req, res, "url");
-      } else {
-         author.id = db.author[db.author.length - 1].id + 1;
-         db.author.push(author);
-         newQuote.authorId = author.id;
-         db.quotes.push(newQuote);
-         const quoteToSend: IQuoteWithAuthor = {
-            ...newQuote,
-            author: author,
-         };
-
-         res.status(201).send(quoteToSend);
-
-         logRequestInfo(req, res, "url");
-      }
+      logRequestInfo(req, res, "url");
    } else {
-      errors.push({ error: "Age should be a number" });
-      res.status(400).send(errors);
-      logRequestInfo(req, res, "path");
+      author.id = db.author[db.author.length - 1].id + 1;
+      db.author.push(author);
+      newQuote.authorId = author.id;
+      db.quotes.push(newQuote);
+      const quoteToSend: IQuoteWithAuthor = {
+         ...newQuote,
+         author: author,
+      };
+
+      res.status(201).send(quoteToSend);
+
+      logRequestInfo(req, res, "url");
    }
 });
 
@@ -325,7 +353,7 @@ app.get("/random", (req, res) => {
    const authorOfQuoteToSend = db.author.find(
       (author) => author.id === randomQuote.authorId
    )!;
-   
+
    const quoteToSend: IQuoteWithAuthor = {
       ...randomQuote,
       author: authorOfQuoteToSend,
