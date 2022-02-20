@@ -96,19 +96,19 @@ WHERE id=?;`).run(value,id)
 export const getQuote = (id: number) =>
    db.prepare(`SELECT * FROM quotes WHERE id=(?)`).get(id);
 
-export const getSearchedQuotes = (column: string, pattern: string) =>
+export const getQuotesBy = (column: string, pattern: string) =>
    db.prepare(`SELECT * FROM quotes WHERE ${column} LIKE ?`).all(pattern);
 
 export const getQuotesByTextAndAuthor = (textP: string, name: string) => {
    return db
       .prepare(
          `SELECT * FROM quotes,authors 
-	WHERE text LIKE '${textP}' 
-	AND (firstName LIKE '${name}'  OR lastName LIKE '${name}') 
+	WHERE text LIKE ? 
+	AND (firstName LIKE ?  OR lastName LIKE ?) 
 	AND authorId= authors.id
 ;`
       )
-      .all();
+      .all(textP,name,name);
 };
 
 export const getRandomQuote = () =>
@@ -185,7 +185,7 @@ export const deleteAuthor = db.prepare(`
 
 export const getAllAuthors = () => db.prepare(`SELECT * FROM authors;`).all();
 
-export const getAuthorsBy = (
+export const getAuthorsByXorY = (
    column: string,
    column2: string,
    pattern: string,
@@ -202,12 +202,14 @@ export const getAuthor = (id: number) =>
    db.prepare(`SELECT * FROM authors WHERE id=?;`).get(id);
 
 
-export const getAuthorByName=(fName,lName)=>db
+export const getAuthorByXandY=(column1,column2,pattern1,pattern2)=>db
       .prepare(
          `
-   SELECT * FROM authors WHERE firstName LIKE ? AND lastName LIKE ?;`
+   SELECT * FROM authors WHERE UPPER(${column1}) = UPPER(?) AND UPPER(${column2}) = UPPER(?);`
       )
-      .get(fName, lName);
+      .get(pattern1, pattern2);
+
+
 
 
 // createQuote('ddddd',5)

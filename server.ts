@@ -8,12 +8,12 @@ import {
    getAllAuthors,
    getAllQuotes,
    getAuthor,
-   getAuthorByName,
-   getAuthorsBy,
+   getAuthorByXandY,
+   getAuthorsByXorY,
    getQuote,
    getQuotesByTextAndAuthor,
    getRandomQuote,
-   getSearchedQuotes,
+   getQuotesBy,
    updateAuthor,
    updateQuoteText,
 } from './dbstuff';
@@ -279,7 +279,7 @@ app.post('/quotes', (req, res) => {
 
    const newQuote: IQuote = { text: req.body.text, authorId: 0, id: 0 };
 
-   const authorMatch = getAuthorByName(author.firstName, author.lastName);
+   const authorMatch = getAuthorByXandY('firstName','lastName',author.firstName, author.lastName);
 
    author.age = Number(author.age);
    if (authorMatch) {
@@ -371,7 +371,7 @@ app.get('/quotes', (req, res) => {
       // );
    } else if (req.query.authorQ !== undefined) {
       logRequestInfo(req, res, 'url');
-      const searchedAuthors = getAuthorsBy(
+      const searchedAuthors = getAuthorsByXorY(
          'lastName',
          'firstName',
          `%${req.query.authorQ}%`,
@@ -380,7 +380,7 @@ app.get('/quotes', (req, res) => {
       // const quotesToSend= getSearchedQuotes(`firstName OR lastName`,`%${req.query.authorQ}%`)
       const quotesToSend: {}[] = [];
       for (const author of searchedAuthors) {
-         const authorQuotes = getSearchedQuotes('authorId', `${author.id}`);
+         const authorQuotes = getQuotesBy('authorId', `${author.id}`);
          for (const quote of authorQuotes) {
             quote.author = author;
             quotesToSend.push(quote);
@@ -399,7 +399,7 @@ app.get('/quotes', (req, res) => {
       // );
    } else if (req.query.textQ !== undefined) {
       logRequestInfo(req, res, 'url');
-      const quotesToSend = getSearchedQuotes(
+      const quotesToSend = getQuotesBy(
          'text',
          '%' + req.query.textQ + '%'
       );
